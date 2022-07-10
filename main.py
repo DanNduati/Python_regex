@@ -343,9 +343,55 @@ print(re.search(regex, "foo"), re.search(regex, "@foo@"), re.search(regex, "#foo
 # Creates a positive lookahead assertion.
 print(re.search(r"foo(?=[a-z])", "foobar"), re.search(r"foo(?=[a-z])", "foo123"))
 # What’s unique about a lookahead is that the portion of the search string that matches <lookahead_regex> isn’t consumed, and it isn’t part of the returned match object.
-m = re.search(r"foo(?=[a-z])(?P<ch>.)","foobar")
+m = re.search(r"foo(?=[a-z])(?P<ch>.)", "foobar")
 print(m)
 print(m.group("ch"))
-m = re.search('foo([a-z])(?P<ch>.)', 'foobar')
+m = re.search(r"foo([a-z])(?P<ch>.)", "foobar")
 print(m)
-print(m.group('ch'))
+print(m.group("ch"))
+#
+# (?!<lookahead_regex>)
+# Creates a negative lookahead assertion
+# This asserts that what follows the regex parser's current position must not match <lookahead_regex>.
+print(re.search(r"foo(?![a-z])", "foobar"), re.search(r"foo(?![a-z])", "foo123"))
+#
+# (?<=<lookbehind_regex>)
+# Creates a positive look behind assertion
+# This asserts that what precedes the regex parser's current position must match <lookbehind_regex>.
+print(re.search(r"(?<=foo)bar", "foobar"), re.search(r"(?<=foo)bar", "barfoo"))
+# Restriction with <lookbehind_regex> : in a lookbehind assertion the <lookbehind_regex> must specify a match of fixed length
+# That is a regex such as r"(?<=a+)" is not valid because the string matched by a+ is indeterminate.
+# An okay example:
+print(re.search(r"(?<=a{3})foo", "aaafoo"))
+#
+# (?<!<lookbehind_regex>)
+# Creates a negative lookbehind assertion
+# This asserts that what precedes the regex parser’s current position must not match <lookbehind_regex>
+print(re.search(r"(?<!foo)bar", "foobar"), re.search(r"(?<!foo)bar", "zoobar"))
+
+# Miscellaneous Metacharacters
+# These are stray metacharacters that don’t obviously fall into any of the categories already discussed.
+#
+# (?#...)
+# Specifies a comment
+print(re.search(r"bar(?#This is a comment) * baz", "foo bar baz"))
+#
+# Vertical bar, or pipe (|)
+# Specifies a set of alernatives on which to match
+# An expression of the form <regex_1>|<regex_2>|...|<regex_n> matches at most one of the specified <regex_i> expressions:
+print(
+    re.search(r"foo|bar|baz", "bar"),
+    re.search(r"foo|bar|baz", "baz"),
+    re.search(r"foo|bar|baz", "quz"),
+)
+# Alternation is non-greedy. The regex parser looks at the expressions separated by | in left-to-right order and returns the first match that it finds.
+# The remaining expressions aren’t tested, even if one of them would produce a longer match:
+print(re.search(r"foo|graull", "foograull"))
+
+# You can combine alternation, grouping, and any other metacharacters to achieve whatever level of complexity you need.
+print(
+    re.search(r"(foo|bar|baz)+", "foofoofoo"),
+    re.search(r"(foo|bar|baz)+", "barfoobarbaz"),
+)
+
+print(re.search(r"([0-9]+|[a-f]+)", "45"), re.search(r"([0-9]+|[a-f]+)", "dada"))
